@@ -1,133 +1,110 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Supermarket Globally | nkwama-labs</title>
+    <title>Supermarket Globally | Master Ecosystem</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
-        :root {
-            --pi-color: #633091; /* Official Pi Purple */
-            --pi-gold: #ffa500;
-            --bg-light: #f4f4f9;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: var(--bg-light);
-            color: #333;
-            text-align: center;
-        }
-        header {
-            background-color: var(--pi-color);
-            color: white;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .container {
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        }
-        .hero-title {
-            color: var(--pi-color);
-            font-size: 28px;
-        }
-        .status-badge {
-            display: inline-block;
-            background: #e1bee7;
-            color: #4a148c;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 14px;
-            margin-bottom: 20px;
-        }
-        .vendor-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 20px;
-            margin-top: 30px;
-        }
-        .placeholder-box {
-            border: 2px dashed #ccc;
-            padding: 40px;
-            border-radius: 10px;
-            color: #888;
-        }
-        .btn-pi {
-            background-color: var(--pi-gold);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            font-size: 18px;
-            border-radius: 30px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: transform 0.2s;
-        }
-        .btn-pi:hover {
-            transform: scale(1.05);
-        }
-        footer {
-            margin-top: 50px;
-            font-size: 12px;
-            color: #999;
-            padding-bottom: 20px;
-        }
+        :root { --p-purp: #4a148c; --p-gold: #ffa000; --bg: #f0f2f5; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); text-align: center; padding-bottom: 50px; }
+        header { background: var(--p-purp); color: white; padding: 40px 20px; border-bottom: 5px solid var(--p-gold); }
+        .card { background: white; margin: 20px auto; padding: 25px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 400px; }
+        .price { font-size: 28px; color: var(--p-purp); font-weight: bold; margin: 15px 0; }
+        .btn { background: var(--p-gold); color: black; border: none; padding: 18px; border-radius: 10px; font-weight: bold; width: 100%; cursor: pointer; font-size: 16px; }
+        #status { font-size: 13px; color: var(--p-gold); margin-top: 15px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 5px; display: inline-block; }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>SUPERMARKET GLOBALLY</h1>
-        <p>Your Global Multi-Vendor Hub</p>
-    </header>
+<header>
+    <h1>SUPERMARKET GLOBALLY</h1>
+    <div id="status">Connecting to Pi Network...</div>
+</header>
 
-    <div class="container">
-        <span class="status-badge">Phase: Merchant Onboarding</span>
-        <h2 class="hero-title">Welcome to the Marketplace</h2>
-        <p>This platform is powered by <strong>nkwama-labs</strong>. We are currently building the world's most secure multi-vendor system for Pioneers.</p>
-        
-        <div class="vendor-grid">
-            <div class="placeholder-box">
-                <h3>No Listings Yet</h3>
-                <p>We are currently vetting global vendors for compliance. Check back soon for high-quality goods available for Pi.</p>
-            </div>
-        </div>
+<div class="card">
+    <h3>Smartphone Pro X</h3>
+    <p>Premium Master Edition</p>
+    <div class="price">120.00 π</div>
+    <button class="btn" onclick="pay()">BUY NOW WITH PI</button>
+</div>
 
-        <div style="margin-top: 40px;">
-            <button class="btn-pi" onclick="authenticatePi()">Connect Pi Wallet</button>
-        </div>
-    </div>
+<script>
+    const Pi = window.Pi;
+    // Set sandbox: true for testing, false for production/Mainnet
+    Pi.init({ version: "2.0", sandbox: true });
 
-    <footer>
-        <p>&copy; 2026 nkwama-labs. All Rights Reserved.</p>
-        <p>Compliant with Pi Network Developer Guidelines.</p>
-    </footer>
-
-    <script>
-        // Initialize Pi SDK
-        const Pi = window.Pi;
-        Pi.init({ version: "2.0", sandbox: true });
-
-        async function authenticatePi() {
-            try {
-                const scopes = ['username', 'payments'];
-                function onIncompletePaymentFound(payment) { /* Handle incomplete payments */ }
-                
-                const auth = await Pi.authenticate(scopes, onIncompletePaymentFound);
-                alert("Welcome, " + auth.user.username + "! Connection successful.");
-            } catch (err) {
-                alert("Please open this in the Pi Browser to connect your wallet.");
-            }
+    async function login() {
+        try {
+            const scopes = ['username', 'payments'];
+            const user = await Pi.authenticate(scopes, onIncompletePayment);
+            document.getElementById('status').innerText = "Logged in as: " + user.user.username;
+        } catch (e) {
+            document.getElementById('status').innerText = "Please open in Pi Browser";
         }
-    </script>
+    }
+
+    async function pay() {
+        const paymentData = {
+            amount: 120.00,
+            memo: "Purchase: Smartphone Pro X",
+            metadata: { item_id: "smart_001" }
+        };
+
+        const callbacks = {
+            onReadyForServerApproval: (paymentId) => {
+                console.log("Payment created, sending to backend for approval...");
+                
+                // --- CONNECTED BACKEND LOGIC ---
+                fetch('https://your-backend-url.com/approve-payment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ paymentId: paymentId })
+                })
+                .then(response => {
+                    if(response.ok) {
+                        alert("Server approved payment! Processing on blockchain...");
+                    } else {
+                        alert("Backend approval failed. Check your Server.");
+                    }
+                })
+                .catch(err => alert("Connection Error to Backend: " + err));
+            },
+            onReadyForServerCompletion: (paymentId, txid) => {
+                // This runs after the user submits to blockchain
+                alert("Payment Successful! \nTXID: " + txid);
+                
+                // Optionally tell your backend the transaction is finished
+                fetch('https://your-backend-url.com/complete-payment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ paymentId: paymentId, txid: txid })
+                });
+            },
+            onCancel: (paymentId) => { 
+                console.log("User cancelled."); 
+            },
+            onError: (error, payment) => { 
+                console.error("Payment Error:", error);
+                alert("Payment Error: " + error.message);
+            }
+        };
+
+        try {
+            await Pi.createPayment(paymentData, callbacks);
+        } catch (err) {
+            alert("Could not start payment.");
+        }
+    }
+
+    function onIncompletePayment(payment) {
+        console.log("Incomplete payment found:", payment);
+    }
+
+    // Initialize Auth
+    login();
+</script>
 
 </body>
 </html>
-"V1"
