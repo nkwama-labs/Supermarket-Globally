@@ -1,110 +1,87 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Supermarket Globally | Master Ecosystem</title>
+    <title>Supermarket-Globally | Pi Marketplace</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
-        :root { --p-purp: #4a148c; --p-gold: #ffa000; --bg: #f0f2f5; }
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); text-align: center; padding-bottom: 50px; }
-        header { background: var(--p-purp); color: white; padding: 40px 20px; border-bottom: 5px solid var(--p-gold); }
-        .card { background: white; margin: 20px auto; padding: 25px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 400px; }
-        .price { font-size: 28px; color: var(--p-purp); font-weight: bold; margin: 15px 0; }
-        .btn { background: var(--p-gold); color: black; border: none; padding: 18px; border-radius: 10px; font-weight: bold; width: 100%; cursor: pointer; font-size: 16px; }
-        #status { font-size: 13px; color: var(--p-gold); margin-top: 15px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 5px; display: inline-block; }
+        :root { --p-purp: #4a148c; --p-gold: #ffa000; }
+        body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #f4f4f4; margin: 0; }
+        header { background: var(--p-purp); color: white; padding: 30px; border-bottom: 5px solid var(--p-gold); }
+        .card { background: white; margin: 20px auto; padding: 20px; border-radius: 15px; max-width: 400px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .btn { background: var(--p-gold); border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; }
+        #status { background: #333; color: var(--p-gold); padding: 10px; font-size: 14px; }
     </style>
 </head>
 <body>
+    <header>
+        <h1>SUPERMARKET GLOBALLY</h1>
+        <div id="status">Connecting to Pi...</div>
+    </header>
 
-<header>
-    <h1>SUPERMARKET GLOBALLY</h1>
-    <div id="status">Connecting to Pi Network...</div>
-</header>
+    <div class="card">
+        <h3>Multi-Vendor Product</h3>
+        <p>Zero Listing Fees | Global Delivery</p>
+        <h2 style="color: #4a148c;">10.00 π</h2>
+        <input type="text" id="cust-name" placeholder="Full Name" style="width:90%; padding:10px; margin:5px;">
+        <textarea id="cust-address" placeholder="Delivery Address" style="width:90%; padding:10px; margin:5px;"></textarea>
+        <button class="btn" onclick="pay()">BUY NOW WITH PI</button>
+    </div>
 
-<div class="card">
-    <h3>Smartphone Pro X</h3>
-    <p>Premium Master Edition</p>
-    <div class="price">120.00 π</div>
-    <button class="btn" onclick="pay()">BUY NOW WITH PI</button>
-</div>
+    <script>
+        const Pi = window.Pi;
+        Pi.init({ version: "2.0", sandbox: true }); // BADILISHA iwe false ukishamaliza test
 
-<script>
-    const Pi = window.Pi;
-    // Set sandbox: true for testing, false for production/Mainnet
-    Pi.init({ version: "2.0", sandbox: true });
+        // MUHIMU: Badilisha URL hapa chini uweke ile URL utakayopewa na Render
+        const BACKEND_URL = "https://supermarket-globally.onrender.com";
 
-    async function login() {
-        try {
-            const scopes = ['username', 'payments'];
-            const user = await Pi.authenticate(scopes, onIncompletePayment);
-            document.getElementById('status').innerText = "Logged in as: " + user.user.username;
-        } catch (e) {
-            document.getElementById('status').innerText = "Please open in Pi Browser";
-        }
-    }
-
-    async function pay() {
-        const paymentData = {
-            amount: 120.00,
-            memo: "Purchase: Smartphone Pro X",
-            metadata: { item_id: "smart_001" }
-        };
-
-        const callbacks = {
-            onReadyForServerApproval: (paymentId) => {
-                console.log("Payment created, sending to backend for approval...");
-                
-                // --- CONNECTED BACKEND LOGIC ---
-                fetch('https://your-backend-url.com/approve-payment', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ paymentId: paymentId })
-                })
-                .then(response => {
-                    if(response.ok) {
-                        alert("Server approved payment! Processing on blockchain...");
-                    } else {
-                        alert("Backend approval failed. Check your Server.");
-                    }
-                })
-                .catch(err => alert("Connection Error to Backend: " + err));
-            },
-            onReadyForServerCompletion: (paymentId, txid) => {
-                // This runs after the user submits to blockchain
-                alert("Payment Successful! \nTXID: " + txid);
-                
-                // Optionally tell your backend the transaction is finished
-                fetch('https://your-backend-url.com/complete-payment', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ paymentId: paymentId, txid: txid })
-                });
-            },
-            onCancel: (paymentId) => { 
-                console.log("User cancelled."); 
-            },
-            onError: (error, payment) => { 
-                console.error("Payment Error:", error);
-                alert("Payment Error: " + error.message);
+        async function login() {
+            try {
+                const user = await Pi.authenticate(['username', 'payments'], onIncompletePaymentFound);
+                document.getElementById('status').innerText = "Welcome, " + user.user.username;
+            } catch (e) {
+                document.getElementById('status').innerText = "Please open in Pi Browser";
             }
-        };
-
-        try {
-            await Pi.createPayment(paymentData, callbacks);
-        } catch (err) {
-            alert("Could not start payment.");
         }
-    }
 
-    function onIncompletePayment(payment) {
-        console.log("Incomplete payment found:", payment);
-    }
+        async function onIncompletePaymentFound(payment) {
+            await fetch(`${BACKEND_URL}/incomplete`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ payment })
+            });
+        }
 
-    // Initialize Auth
-    login();
-</script>
+        async function pay() {
+            const name = document.getElementById('cust-name').value;
+            const addr = document.getElementById('cust-address').value;
+            if(!name || !addr) return alert("Fill all details!");
 
+            Pi.createPayment({
+                amount: 10.00,
+                memo: "Purchase from Supermarket Globally",
+                metadata: { name, addr }
+            }, {
+                onReadyForServerApproval: (id) => {
+                    fetch(`${BACKEND_URL}/approve`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ paymentId: id })
+                    });
+                },
+                onReadyForServerCompletion: (id, txid) => {
+                    fetch(`${BACKEND_URL}/complete`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ paymentId: id, txid })
+                    });
+                },
+                onCancel: (id) => { console.log("Cancelled"); },
+                onError: (err) => { alert("Error!"); }
+            });
+        }
+        window.onload = login;
+    </script>
 </body>
 </html>
